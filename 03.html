@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - orbit controls</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+
+			body {
+				background-color: #ccc;
+				color: #000;
+			}
+
+			a {
+				color: #f00;
+			}
+
+			*{
+				margin:  0px;
+			}
+
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		</div>
+
+		<script type="module">
+
+			import * as THREE from './build/three.module.js';
+
+			import { OrbitControls } from './jsm/controls/OrbitControls.js';
+			import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+			import { Reflector } from './jsm/objects/Reflector.js';
+
+			let camera, controls, scene, renderer;
+
+			var shape = new THREE.Group();
+
+			var groundMirror;
+
+			init();
+			animate();
+
+			function init() {
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x000000 );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.set( 400, 200, 0 );
+
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.listenToKeyEvents( window );
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.05;
+				controls.screenSpacePanning = false;
+				controls.minDistance = 100;
+				controls.maxDistance = 500;
+				controls.maxPolarAngle = Math.PI / 2;
+
+				var spherical = 30;
+
+				var displacement_count = Math.random() * (15 - 10) + 10;
+
+				// PARAMS
+
+				var maximum_leaves = 300;
+				var minimum_leaves = 200;
+
+				var maximum_hairs = 250;
+				var minimum_hairs = 100;
+
+				var maximum_bud = 700;
+				var minimum_bud = 600;
+
+				var maximum_crystal = 100;
+				var minimum_crystal = 50;
+
+					// RAND0M LEAF COUNT
+
+				var c_leaf = Math.random() * (maximum_leaves - minimum_leaves) + minimum_leaves;
+
+					// RAND0M HAIR COUNT
+
+				var c_hairs = Math.random() * (maximum_hairs - minimum_hairs) + minimum_hairs;
+				
+					// RAND0M BUD COUNT
+
+				var c_bud = Math.random() * (maximum_bud - minimum_bud) + minimum_bud;				
+					
+					// RAND0M CRYSTAL COUNT
+
+				var c_crystal = Math.random() * (maximum_crystal - minimum_crystal) + minimum_crystal;
+
+					// RAND0M SHAPE SIZE
+
+				var shape_size_x = Math.random() * (1 - .5) + .5;
+				var shape_size_y = Math.random() * (2 - .5) + .5;
+				var shape_size_z = Math.random() * (1 - .5) + .5;
+
+					// RAND0M HAIR SHAPE
+
+				var c_hair_gen_vec_01 = Math.random() * (5 - 5) + 5;
+				var c_hair_gen_vec_02 = Math.random() * (5 - 2) + 2;
+
+						// LOG RANDOM VALUES
+
+				console.log("leaf count:"+c_leaf)
+				console.log("hair count:"+c_hairs)
+
+				// HAIRS
+
+				const curve = new THREE.SplineCurve( [
+					new THREE.Vector2( -c_hair_gen_vec_01, 0 ),
+					new THREE.Vector2( -c_hair_gen_vec_02, 5 ),
+					new THREE.Vector2( 0, 0 ),
+					new THREE.Vector2( 5, -c_hair_gen_vec_02 ),
+					new THREE.Vector2( c_hair_gen_vec_01, 0 )
+				] );
+
+				const points = curve.getPoints( 50 );
+				const geometrycurve = new THREE.BufferGeometry().setFromPoints( points );
+				const materialcurve = new THREE.MeshBasicMaterial( { color : 0xFFA500, transparent: true } );
+				materialcurve.opacity = .5;
+
+				for( var i = 0; i < c_hairs; i++){
+					const splineObject = new THREE.Line( geometrycurve, materialcurve );
+					splineObject.position.x = Math.random() * 2 - 1;
+					splineObject.position.y = Math.random() * 2 - 1;
+					splineObject.position.z = Math.random() * 2 - 1;
+					splineObject.rotation.x = Math.random() * 2 - 1;
+					splineObject.rotation.y = Math.random() * 2 - 1;
+					splineObject.rotation.z = Math.random() * 2 - 1;
+					splineObject.position.normalize();
+					splineObject.position.multiplyScalar( spherical/1.3 );
+					shape.add(splineObject);
+				}
+
+				// BUD OUTER
+
+				const geometrybudouter = new THREE.DodecahedronGeometry(10, 1);
+				const materialbudouter = new THREE.MeshPhongMaterial()
+
+				const texturebudouter = new THREE.TextureLoader().load('textures/marijuana/base_bud.jpeg')
+				
+    			texturebudouter.wrapS = THREE.RepeatWrapping;
+    			texturebudouter.wrapT = THREE.RepeatWrapping;
+
+    			materialbudouter.map = texturebudouter;
+
+				const displacementMapbudouter = new THREE.TextureLoader().load(
+				    'textures/marijuana/base_bud.jpeg'
+				)
+				materialbudouter.displacementMap = displacementMapbudouter;
+				materialbudouter.displacementScale = displacement_count;
+				materialbudouter.displacementMap.needsUpdate = true;
+
+				for( var i = 0; i < c_bud; i++){
+					const budouter = new THREE.Mesh( geometrybudouter, materialbudouter );
+					budouter.position.x = Math.random() * 2 - 1;
+					budouter.position.y = Math.random() * 2 - 1;
+					budouter.position.z = Math.random() * 2 - 1;
+					budouter.rotation.x = Math.random() * 2 - 1;
+					budouter.rotation.y = Math.random() * 2 - 1;
+					budouter.rotation.z = Math.random() * 2 - 1;
+					budouter.scale.x = Math.random() * .7 - .4;
+					budouter.scale.y = Math.random() * .7 - .4;
+					budouter.scale.z = Math.random() * .7 - .4;
+					budouter.position.normalize();
+					budouter.position.multiplyScalar( spherical/1.3 );
+					shape.add(budouter);
+				}
+
+				// BUD INNER
+
+				const geometrybudinner = new THREE.DodecahedronGeometry(10, 1);
+				const materialbudinner = new THREE.MeshPhongMaterial()
+
+				const texturebudinner = new THREE.TextureLoader().load('textures/marijuana/base_bud.jpeg')
+				
+    			texturebudinner.wrapS = THREE.RepeatWrapping;
+    			texturebudinner.wrapT = THREE.RepeatWrapping;
+
+    			materialbudinner.map = texturebudinner;
+
+				const displacementMapbudinner = new THREE.TextureLoader().load(
+				    'textures/marijuana/base_bud.jpeg'
+				)
+				materialbudinner.displacementMap = displacementMapbudinner;
+				materialbudinner.displacementScale = displacement_count;
+				materialbudinner.displacementMap.needsUpdate = true;
+
+				for( var i = 0; i < c_bud; i++){
+					const budinner = new THREE.Mesh( geometrybudinner, materialbudinner );
+					budinner.position.x = Math.random() * 2 - 1;
+					budinner.position.y = Math.random() * 2 - 1;
+					budinner.position.z = Math.random() * 2 - 1;
+					budinner.rotation.x = Math.random() * 2 - 1;
+					budinner.rotation.y = Math.random() * 2 - 1;
+					budinner.rotation.z = Math.random() * 2 - 1;
+					budinner.scale.x = Math.random() * .7 - .4;
+					budinner.scale.y = Math.random() * .7 - .4;
+					budinner.scale.z = Math.random() * .7 - .4;
+					budinner.position.normalize();
+					budinner.position.multiplyScalar( spherical/1.8 );
+					shape.add(budinner);
+				}
+
+				// LEAF
+
+				const geometryleaf = new THREE.DodecahedronGeometry(10, 1);
+				const materialleaf = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide})
+
+				const textureleaf = new THREE.TextureLoader().load('textures/marijuana/base_leaf.jpeg')
+				
+    			textureleaf.wrapS = THREE.RepeatWrapping;
+    			textureleaf.wrapT = THREE.RepeatWrapping;
+
+    			materialleaf.map = textureleaf;
+
+				const displacementMapleaf = new THREE.TextureLoader().load(
+				    'textures/marijuana/base_leaf.jpeg'
+				)
+				materialleaf.displacementMap = displacementMapleaf;
+				materialleaf.displacementScale = displacement_count;
+				materialleaf.displacementMap.needsUpdate = true;
+
+				for( var i = 0; i < c_leaf; i++){
+					const leaf = new THREE.Mesh( geometryleaf, materialleaf );
+					leaf.position.x = Math.random() * 2 - 1;
+					leaf.position.y = Math.random() * 2 - 1;
+					leaf.position.z = Math.random() * 2 - 1;
+					leaf.rotation.x = Math.random() * 2 - 1;
+					leaf.rotation.y = Math.random() * 2 - 1;
+					leaf.rotation.z = Math.random() * 2 - 1;
+					leaf.scale.x = Math.random() * .5 - .4;
+					leaf.scale.y = Math.random() * .5 - .4;
+					leaf.scale.z = Math.random() * .5 - .4;
+					leaf.position.normalize();
+					leaf.position.multiplyScalar( spherical/1.3 );
+					shape.add(leaf);
+				}
+
+				// CRYSTAL
+
+				const geometrycrystal = new THREE.DodecahedronGeometry(.2, 1);
+				const materialcrystal = new THREE.MeshPhongMaterial({ 
+					shininess: 100, 
+					color: 0xffffff, 
+					side: THREE.DoubleSide, 
+					transparent: true })
+
+				materialcrystal.opacity = .5;
+
+				for( var i = 0; i < c_crystal; i++){
+					const crystal = new THREE.Mesh( geometrycrystal, materialcrystal );
+					crystal.position.x = Math.random() * 2 - 1;
+					crystal.position.y = Math.random() * 2 - 1;
+					crystal.position.z = Math.random() * 2 - 1;
+					crystal.rotation.x = Math.random() * 2 - 1;
+					crystal.rotation.y = Math.random() * 2 - 1;
+					crystal.rotation.z = Math.random() * 2 - 1;
+					crystal.position.normalize();
+					crystal.position.multiplyScalar( spherical/1.2 );
+					shape.add(crystal);
+				}
+
+				// - - - - - 
+
+				shape.scale.set( shape_size_x, shape_size_y, shape_size_z);
+				scene.add( shape );
+
+				// - - - - - 
+
+				// var stem = new THREE.Object3D();
+
+				// var stem_scale = .3;
+
+				// const loader = new GLTFLoader().setPath( 'models/stem/' );
+				// loader.load( 'a_1.gltf', function ( gltf ) {
+				// 	stem.add( gltf.scene );
+				// });
+
+				// stem.position.y = -40;
+				// stem.scale.set(stem_scale,stem_scale,stem_scale);
+				// scene.add(stem);
+
+				let geometry_mirror, material;
+
+				geometry_mirror = new THREE.CircleGeometry( 40, 64 );
+				groundMirror = new Reflector( geometry_mirror, {
+					clipBias: 0.003,
+					textureWidth: window.innerWidth * window.devicePixelRatio,
+					textureHeight: window.innerHeight * window.devicePixelRatio,
+					color: 0x777777
+				} );
+				groundMirror.position.y = -60;
+				groundMirror.rotateX( - Math.PI / 2 );
+				scene.add( groundMirror );
+
+				// LIGHTINGS
+
+				const dirLight1 = new THREE.DirectionalLight( 0xffffff );
+				dirLight1.position.set( 1, 1, 1 );
+				scene.add( dirLight1 );
+
+				const dirLight2 = new THREE.DirectionalLight( 0x002288 );
+				dirLight2.position.set( - 1, - 1, - 1 );
+				scene.add( dirLight2 );
+
+				const ambientLight = new THREE.AmbientLight( 0x222222 );
+				scene.add( ambientLight );
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			// window.addEventListener('keypress', event => {
+			// 	if (event.key == "r") {				    
+			// 	}
+			// })
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+				controls.update();
+				render();
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>

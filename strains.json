@@ -1,0 +1,31 @@
+{
+  "strains": [
+    {
+        "name": "pink_kush",
+        "buds": [200],
+        "crystals": [1000],
+        "hairs": [1],
+        "leaves": [10],
+        "roundness": [0.9],
+        "colors": ["0xffffff", "0xffffff", "0xD9E5D6", "0xD9E5D6"]
+    },
+    {
+        "name": "purple_haze",
+        "buds": [300],
+        "crystals": [200],
+        "hairs": [15],
+        "leaves": [5],
+        "roundness": [50],
+        "colors:": ["0xff0000", "0x00ff00", "0x00ff00", "0x222222"]
+    },
+    {
+        "name": "lemon",
+        "buds": [100],
+        "crystals": [700],
+        "hairs": [20],
+        "leaves": [10],
+        "roundness": [10],
+        "colors:": ["0xff0000", "0x00ff00", "0x00ff00", "0x222222"]
+    }
+  ]
+}
